@@ -1,6 +1,7 @@
 package com.example.notesapp
 
 import androidx.lifecycle.ViewModel
+import com.example.notesapp.repository.Note
 import com.example.notesapp.repository.NotesRepository
 import com.example.notesapp.repository.NotesRepositoryImpl
 
@@ -26,7 +27,7 @@ class NotesViewModel(
         repository.deleteNote(id)
     }
 
-    fun searchNote(id: Int): NotesRepository.Note? {
+    fun searchNote(id: Int): Note? {
         return notes.value.find({ it.id == id })
     }
 }

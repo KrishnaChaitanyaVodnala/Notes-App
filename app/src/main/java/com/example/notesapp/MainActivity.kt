@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.notesapp.repository.NotesRepository
 import com.example.notesapp.ui.theme.NotesAppTheme
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -55,6 +54,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.notesapp.repository.Note
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -331,7 +331,7 @@ fun OnCreate(
 @Composable
 fun DisplayNote(
     modifier: Modifier = Modifier,
-    note: NotesRepository.Note?,
+    note: Note?,
     row: Boolean = true,
     onClick: (Int) -> Unit = { },
     onDelete: (Int) -> Unit = { }
@@ -361,7 +361,7 @@ fun DisplayNote(
                     onDelete(note.id)
                 }
             ) {
-                Text("\uD83D\uDDD1\uFE0F\n")
+                Text("\uD83D\uDDD1\uFE0F\n", fontSize = 18.sp)
             }
         }
     } else {
