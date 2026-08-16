@@ -30,4 +30,7 @@ Kotlin · Jetpack Compose · Material3 · Navigation Compose · StateFlow
 🚧 In progress — Room DB persistence coming next (Week 11)
 
 ## Screenshots
-_(add before pushing — list screen, detail screen, dark mode)_
+- ![alt text](image.png)
+![alt text](image-1.png)
+- ![alt text](image-2.png)
+![alt text](image-3.png)

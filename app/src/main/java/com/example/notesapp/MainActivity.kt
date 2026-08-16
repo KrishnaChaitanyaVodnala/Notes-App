@@ -245,6 +245,7 @@ fun NotesScreen(
             ) {
                 Text("Create Note")
             }
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 
@@ -360,7 +361,7 @@ fun DisplayNote(
                     onDelete(note.id)
                 }
             ) {
-                Text("-")
+                Text("\uD83D\uDDD1\uFE0F\n")
             }
         }
     } else {
