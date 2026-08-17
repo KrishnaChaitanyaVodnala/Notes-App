@@ -1,5 +1,6 @@
 package com.example.notesapp.repository
 
+import com.example.notesapp.data.Note
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

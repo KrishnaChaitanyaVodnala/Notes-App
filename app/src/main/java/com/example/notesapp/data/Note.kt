@@ -1,4 +1,4 @@
-package com.example.notesapp.repository
+package com.example.notesapp.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

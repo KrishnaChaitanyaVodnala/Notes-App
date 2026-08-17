@@ -1,7 +1,7 @@
 package com.example.notesapp
 
 import androidx.lifecycle.ViewModel
-import com.example.notesapp.repository.Note
+import com.example.notesapp.data.Note
 import com.example.notesapp.repository.NotesRepository
 import com.example.notesapp.repository.NotesRepositoryImpl
 
