@@ -1,13 +1,14 @@
 package com.example.notesapp.repository
 
 import com.example.notesapp.data.Note
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 interface NotesRepository {
 
-    val list: StateFlow<List<Note>>
+    val notes: Flow<List<Note>>
 
-    fun addNote(title: String, notes: String, id: Int)
+    suspend fun addNote(note: Note)
 
-    fun deleteNote(id: Int)
+    suspend fun deleteNote(note: Note)
 }

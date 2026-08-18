@@ -1,29 +1,18 @@
 package com.example.notesapp.repository
 
 import com.example.notesapp.data.Note
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import com.example.notesapp.data.NotesDao
+import kotlinx.coroutines.flow.Flow
 
-class NotesRepositoryImpl: NotesRepository {
+class NotesRepositoryImpl(val notesDao: NotesDao): NotesRepository {
 
-    private val _list = MutableStateFlow<List<Note>>(emptyList())
+    override val notes: Flow<List<Note>> = notesDao.getAllItems()
 
-    override val list: StateFlow<List<Note>> = _list.asStateFlow()
-
-    override fun addNote(title: String, notes: String, id: Int) {
-        val note = Note(
-            id = id,
-            title = title,
-            notes = notes
-        )
-
-        _list.value += note
+    override suspend fun addNote(note: Note) {
+        notesDao.insert(note)
     }
 
-    override fun deleteNote(id: Int) {
-        _list.value = _list.value.filter {
-            it.id != id
-        }
+    override suspend fun deleteNote(note: Note) {
+        notesDao.delete(note)
     }
 }

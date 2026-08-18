@@ -1,9 +1,9 @@
 package com.example.notesapp
 
 sealed class Screen(val route: String) {
-    object notes: Screen("Notes")
-    object create: Screen("Create")
-    object display: Screen("Display")
+    object Notes: Screen("Notes")
+    object Create: Screen("Create")
+    object Display: Screen("Display")
 
     fun withArgs(vararg args: String): String {
         return buildString {

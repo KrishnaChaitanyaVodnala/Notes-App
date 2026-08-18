@@ -1,11 +1,9 @@
-package com.example.notesapp.repository
+package com.example.notesapp.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.notesapp.data.Note
-import com.example.notesapp.data.NotesDao
 
 /**
  * Database class with a singleton Instance object.
@@ -20,7 +18,7 @@ abstract class NotesDatabase : RoomDatabase() {
         private var Instance: NotesDatabase? = null
 
         fun getDatabase(context: Context): NotesDatabase {
-            // if the Instance is not null, return it, otherwise create a new database instance.
+            // if the Instance is not null, return it, otherwise create a new database instance by handling threads, so that only one instance can be created/
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, NotesDatabase::class.java, "notes_database")
                     .build()

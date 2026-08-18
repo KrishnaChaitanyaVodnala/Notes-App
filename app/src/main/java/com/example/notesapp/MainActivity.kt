@@ -55,19 +55,26 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.notesapp.data.Note
+import com.example.notesapp.data.NotesDatabase
+import com.example.notesapp.repository.NotesRepository
+import com.example.notesapp.repository.NotesRepositoryImpl
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            NotesAppRoot()
+            val repository = NotesRepositoryImpl(NotesDatabase.getDatabase(applicationContext).notesDao())
+            val notesViewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(repository))
+            NotesAppRoot(notesViewModel)
         }
     }
 }
 
 @Composable
-fun NotesAppRoot() {
+fun NotesAppRoot(notesViewModel: NotesViewModel) {
 
     val systemDarkTheme = isSystemInDarkTheme()
 
@@ -78,6 +85,7 @@ fun NotesAppRoot() {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             Surface(tonalElevation = 5.dp) {
                 NotesApp(
+                    notesViewModel = notesViewModel,
                     modifier = Modifier.padding(innerPadding),
                     darkTheme = darkTheme,
                     onThemeChange = {
@@ -91,6 +99,7 @@ fun NotesAppRoot() {
 
 @Composable
 fun NotesApp(
+    notesViewModel: NotesViewModel,
     modifier:Modifier = Modifier,
     darkTheme: Boolean = false,
     onThemeChange: () -> Unit = { }
@@ -98,25 +107,23 @@ fun NotesApp(
 
     val navController = rememberNavController()
 
-    val notesViewModel: NotesViewModel = viewModel()
-
-    NavHost(navController = navController, startDestination = Screen.notes.route) {
-        composable(route = Screen.notes.route) {
+    NavHost(navController = navController, startDestination = Screen.Notes.route) {
+        composable(route = Screen.Notes.route) {
             NotesScreen(
                 modifier = modifier,
                 notesViewModel = notesViewModel,
                 darkTheme = darkTheme,
                 onThemeChange = onThemeChange,
                 onCreateNote = {
-                    navController.navigate(Screen.create.route)
+                    navController.navigate(Screen.Create.route)
                 },
                 displayNote = {
-                    navController.navigate(Screen.display.withArgs(it.toString()))
+                    navController.navigate(Screen.Display.withArgs(it.toString()))
                 }
             )
         }
 
-        composable(route = Screen.create.route) {
+        composable(route = Screen.Create.route) {
             OnCreate(
                 modifier = modifier,
                 onAdd = {
@@ -129,7 +136,7 @@ fun NotesApp(
         }
 
         composable(
-            route = Screen.display.route + "/{id}",
+            route = Screen.Display.route + "/{id}",
             arguments = listOf(
                 navArgument("id") {
                     type = NavType.IntType
@@ -157,7 +164,7 @@ fun NotesApp(
 @Composable
 fun NotesScreen(
     modifier: Modifier = Modifier,
-    notesViewModel: NotesViewModel = viewModel(),
+    notesViewModel: NotesViewModel,
     darkTheme: Boolean = false,
     onThemeChange: () -> Unit = { },
     onCreateNote: () -> Unit,
@@ -334,7 +341,7 @@ fun DisplayNote(
     note: Note?,
     row: Boolean = true,
     onClick: (Int) -> Unit = { },
-    onDelete: (Int) -> Unit = { }
+    onDelete: (Note) -> Unit = { }
 ) {
     if(note == null) return
 
@@ -358,7 +365,7 @@ fun DisplayNote(
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    onDelete(note.id)
+                    onDelete(note)
                 }
             ) {
                 Text("\uD83D\uDDD1\uFE0F\n", fontSize = 18.sp)
@@ -419,7 +426,22 @@ fun DisplayNote(
 )
 @Composable
 fun DefaultPreview() {
+
+    val fakeRepository = object : NotesRepository {
+        override val notes: Flow<List<Note>> = flowOf(
+            listOf(Note(id = 1, title = "Sample", notes = "Preview note"))
+        )
+
+        override suspend fun addNote(note: Note) {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun deleteNote(note: Note) {
+            TODO("Not yet implemented")
+        }
+    }
+    val previewViewModel = NotesViewModel(fakeRepository)
     NotesAppTheme {
-        NotesApp()
+        NotesApp(previewViewModel)
     }
 }
