@@ -43,9 +43,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
@@ -151,10 +154,13 @@ fun NotesApp(
                 return@composable
             }
 
+            val note = notesViewModel.searchNote(id)
+
             DisplayNote(
                 modifier = modifier,
-                note = notesViewModel.searchNote(id),
-                row = false
+                note = note,
+                row = false,
+                onSave = { notesViewModel.updateNote(note, it)}
             )
         }
     }
@@ -341,7 +347,8 @@ fun DisplayNote(
     note: Note?,
     row: Boolean = true,
     onClick: (Int) -> Unit = { },
-    onDelete: (Note) -> Unit = { }
+    onDelete: (Note) -> Unit = { },
+    onSave: (List<String>) -> Boolean = { true }
 ) {
     if(note == null) return
 
@@ -380,17 +387,33 @@ fun DisplayNote(
             verticalArrangement = Arrangement.Center
         ) {
 
-            Text(
-                text = note.title,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
+            var title by rememberSaveable { mutableStateOf(note.title) }
+            var notes by rememberSaveable { mutableStateOf(note.notes) }
+            var isInputValid by rememberSaveable { mutableStateOf(true) }
+
+            TextField (
+                value = title,
+                onValueChange = {
+                    title = it
+                    isInputValid = true
+                },
+                textStyle = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 20.sp,
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
                 modifier = Modifier
-                    .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                    .border(
+                        2.dp,
+                        MaterialTheme.colorScheme.outline,
+                        RoundedCornerShape(8.dp)
+                    )
                     .fillMaxWidth()
-                    .padding(10.dp),
-                fontSize = 20.sp
             )
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -400,18 +423,59 @@ fun DisplayNote(
 
             val scrollState = rememberScrollState()
 
-            Text(
-                note.notes,
-                color = MaterialTheme.colorScheme.onSurface,
+            TextField(
+                value = notes,
+                onValueChange = {
+                    notes = it
+                },
+                textStyle = TextStyle(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 18.sp,
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
                 modifier = Modifier
                     .verticalScroll(scrollState)
                     .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(10.dp),
-                fontSize = 18.sp
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            var isLoading by rememberSaveable { mutableStateOf(false) }
+
+            ElevatedButton(
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                elevation = ButtonDefaults.elevatedButtonElevation(
+                    defaultElevation = 4.dp,
+                    pressedElevation = 8.dp
+                ),
+                onClick = {
+                    isLoading = true
+                    isInputValid = onSave(listOf(title, notes))
+                    isLoading = false
+                }
+            ) {
+                Text(if(isLoading) "Saving.." else "Save Changes")
+            }
+            Spacer(modifier = Modifier.height(5.dp))
+            if (!isInputValid) {
+                Text(
+                    "Title cannot be Empty!",
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Text(
+                    "All changes are up to date ✔\uFE0F",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
         }
     }
 }
@@ -437,6 +501,10 @@ fun DefaultPreview() {
         }
 
         override suspend fun deleteNote(note: Note) {
+            TODO("Not yet implemented")
+        }
+
+        override suspend fun updateNote(note: Note) {
             TODO("Not yet implemented")
         }
     }

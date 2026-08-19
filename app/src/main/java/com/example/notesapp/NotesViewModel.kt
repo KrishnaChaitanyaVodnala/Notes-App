@@ -33,6 +33,23 @@ class NotesViewModel(val repository: NotesRepository): ViewModel() {
         return true
     }
 
+    fun updateNote(note: Note?, list: List<String>): Boolean {
+        val title = list[0]
+        if(title.isBlank()) {
+            return false
+        }
+
+        val notes = list[1]
+
+        viewModelScope.launch {
+            repository.updateNote(note!!.copy(
+                title = title,
+                notes = notes
+            ))
+        }
+        return true
+    }
+
     fun deleteNote(note: Note) {
         viewModelScope.launch {
             repository.deleteNote(note)

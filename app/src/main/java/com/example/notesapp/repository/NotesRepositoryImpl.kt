@@ -12,6 +12,10 @@ class NotesRepositoryImpl(val notesDao: NotesDao): NotesRepository {
         notesDao.insert(note)
     }
 
+    override suspend fun updateNote(note: Note) {
+        notesDao.update(note)
+    }
+
     override suspend fun deleteNote(note: Note) {
         notesDao.delete(note)
     }
