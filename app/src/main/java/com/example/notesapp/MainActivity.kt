@@ -27,9 +27,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -39,12 +41,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -63,6 +69,12 @@ import com.example.notesapp.repository.NotesRepository
 import com.example.notesapp.repository.NotesRepositoryImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
+import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.res.painterResource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -353,30 +365,75 @@ fun DisplayNote(
     if(note == null) return
 
     if(row) {
-        Row(
-            modifier = Modifier.padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+
+        val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
+            confirmValueChange = {
+                if(it == StartToEnd) onClick(note.id)
+                else if(it == EndToStart) onDelete(note)
+                // Reset item when toggling done status
+                it != StartToEnd
+            }
+        )
+
+        SwipeToDismissBox(
+            state = swipeToDismissBoxState,
+            modifier = modifier.fillMaxSize(),
+            backgroundContent = {
+                when(swipeToDismissBoxState.dismissDirection) {
+                    StartToEnd -> {
+                        Icon(
+                            painter = painterResource(R.drawable.update_icon),
+                            contentDescription = "Update Note",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .drawBehind {
+                                    drawRect(lerp(Color.LightGray, Color.Blue, swipeToDismissBoxState.progress))
+                                }
+                                .wrapContentSize(Alignment.CenterStart)
+                                .padding(12.dp),
+                            tint = Color.White
+                        )
+                    }
+
+                    EndToStart -> {
+                        Icon(
+                            painter = painterResource(R.drawable.delete_icon),
+                            contentDescription = "Remove Note",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(lerp(Color.LightGray, Color.Red, swipeToDismissBoxState.progress))
+                                .wrapContentSize(Alignment.CenterStart)
+                                .padding(12.dp),
+                            tint = Color.White
+                        )
+                    }
+
+                    SwipeToDismissBoxValue.Settled -> {}
+                }
+            }
         ) {
-            Spacer(modifier = Modifier.width(2.dp))
-            Text(
-                text = note.title,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
+
+            Row(
                 modifier = Modifier
                     .clickable {
                         onClick(note.id)
                     }
-                    .weight(1f),
-                fontSize = 18.sp
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = {
-                    onDelete(note)
-                }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("\uD83D\uDDD1\uFE0F\n", fontSize = 18.sp)
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = note.title,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
             }
+
         }
     } else {
         Column(
@@ -390,10 +447,12 @@ fun DisplayNote(
             var title by rememberSaveable { mutableStateOf(note.title) }
             var notes by rememberSaveable { mutableStateOf(note.notes) }
             var isInputValid by rememberSaveable { mutableStateOf(true) }
+            var isEditing by rememberSaveable { mutableStateOf(false) }
 
             TextField (
                 value = title,
                 onValueChange = {
+                    isEditing = true
                     title = it
                     isInputValid = true
                 },
@@ -426,6 +485,7 @@ fun DisplayNote(
             TextField(
                 value = notes,
                 onValueChange = {
+                    isEditing = true
                     notes = it
                 },
                 textStyle = TextStyle(
@@ -460,15 +520,24 @@ fun DisplayNote(
                     isLoading = true
                     isInputValid = onSave(listOf(title, notes))
                     isLoading = false
+                    isEditing = false
                 }
             ) {
                 Text(if(isLoading) "Saving.." else "Save Changes")
             }
-            Spacer(modifier = Modifier.height(5.dp))
             if (!isInputValid) {
+                Spacer(modifier = Modifier.height(5.dp))
                 Text(
                     "Title cannot be Empty!",
                     color = MaterialTheme.colorScheme.error
+                )
+            }
+            Spacer(modifier = Modifier.height(5.dp))
+
+            if(isEditing) {
+                Text(
+                    "Changes not saved ❗",
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             } else {
                 Text(
