@@ -37,7 +37,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
@@ -69,11 +68,7 @@ import com.example.notesapp.repository.NotesRepository
 import com.example.notesapp.repository.NotesRepositoryImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd
-import androidx.compose.material3.SwipeToDismissBoxValue.EndToStart
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.painterResource
 
 class MainActivity : ComponentActivity() {
@@ -366,51 +361,31 @@ fun DisplayNote(
 
     if(row) {
 
-        val swipeToDismissBoxState = rememberSwipeToDismissBoxState(
-            confirmValueChange = {
-                if(it == StartToEnd) onClick(note.id)
-                else if(it == EndToStart) onDelete(note)
-                // Reset item when toggling done status
-                it != StartToEnd
+        val swipeToDismissBoxState = rememberSwipeToDismissBoxState()
+
+        LaunchedEffect(swipeToDismissBoxState.currentValue) {
+            if (swipeToDismissBoxState.currentValue == SwipeToDismissBoxValue.EndToStart) {
+                onDelete(note)
             }
-        )
+        }
 
         SwipeToDismissBox(
             state = swipeToDismissBoxState,
             modifier = modifier.fillMaxSize(),
             backgroundContent = {
-                when(swipeToDismissBoxState.dismissDirection) {
-                    StartToEnd -> {
-                        Icon(
-                            painter = painterResource(R.drawable.update_icon),
-                            contentDescription = "Update Note",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .drawBehind {
-                                    drawRect(lerp(Color.LightGray, Color.Blue, swipeToDismissBoxState.progress))
-                                }
-                                .wrapContentSize(Alignment.CenterStart)
-                                .padding(12.dp),
-                            tint = Color.White
-                        )
-                    }
-
-                    EndToStart -> {
-                        Icon(
-                            painter = painterResource(R.drawable.delete_icon),
-                            contentDescription = "Remove Note",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(lerp(Color.LightGray, Color.Red, swipeToDismissBoxState.progress))
-                                .wrapContentSize(Alignment.CenterStart)
-                                .padding(12.dp),
-                            tint = Color.White
-                        )
-                    }
-
-                    SwipeToDismissBoxValue.Settled -> {}
+                if(swipeToDismissBoxState.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                    Icon(
+                        painter = painterResource(R.drawable.delete_icon),
+                        contentDescription = "Remove Note",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .wrapContentSize(Alignment.CenterEnd)
+                            .padding(12.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
-            }
+            },
+            enableDismissFromStartToEnd = false
         ) {
 
             Row(
@@ -418,7 +393,7 @@ fun DisplayNote(
                     .clickable {
                         onClick(note.id)
                     }
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Spacer(modifier = Modifier.width(2.dp))
@@ -429,7 +404,12 @@ fun DisplayNote(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
-                    fontSize = 18.sp
+                    fontSize = 22.sp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "← Swipe to Delete",
+                    color = MaterialTheme.colorScheme.tertiary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
