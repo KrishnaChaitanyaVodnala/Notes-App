@@ -63,9 +63,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.notesapp.data.Note
-import com.example.notesapp.data.NotesDatabase
 import com.example.notesapp.repository.NotesRepository
-import com.example.notesapp.repository.NotesRepositoryImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.runtime.LaunchedEffect
@@ -76,7 +74,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val repository = NotesRepositoryImpl(NotesDatabase.getDatabase(applicationContext).notesDao())
+            val repository = (application as NotesApplication).repository
             val notesViewModel: NotesViewModel = viewModel(factory = NotesViewModelFactory(repository))
             NotesAppRoot(notesViewModel)
         }
